@@ -59,20 +59,30 @@ export default function GameHost({ lobby, localPlayerId, chainStyle, onCoins, on
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
       },
-      scene: [CoopScene],
+      scene: [],
     };
 
     const game = new Phaser.Game(config);
     gameRef.current = game;
     game.events.once(Phaser.Core.Events.READY, () => {
-      const scene = game.scene.getScene("coop-scene");
-      scene.scene.restart(initData);
+      game.scene.add("coop-scene", CoopScene, true, initData);
     });
 
     return () => {
       game.destroy(true);
       gameRef.current = null;
     };
+  }, []);
+
+  useEffect(() => {
+    const game = gameRef.current;
+    if (!game) {
+      return;
+    }
+    const scene = game.scene.getScene("coop-scene");
+    if (scene) {
+      scene.scene.restart(initData);
+    }
   }, [initData]);
 
   return (

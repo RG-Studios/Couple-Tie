@@ -156,11 +156,14 @@ button:hover {
   margin-top: 14px;
   display: grid;
   gap: 10px;
+  width: 100%;
 }
 
 .phaser-wrapper {
   width: 100%;
-  min-height: min(760px, 75dvh);
+  aspect-ratio: 1100 / 760;
+  max-height: min(72dvh, 760px);
+  min-height: 320px;
   border-radius: 16px;
   overflow: hidden;
   border: 3px solid #b8d0e2;
@@ -168,13 +171,16 @@ button:hover {
 }
 
 .mobile-controls {
-  display: none;
+  display: flex;
   gap: 10px;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 .control-btn {
-  min-width: 90px;
+  min-width: 98px;
+  padding: 11px 14px;
+  font-weight: 900;
 }
 
 .control-btn.jump {
@@ -200,13 +206,12 @@ button:hover {
     padding: 12px;
   }
 
-  .mobile-controls {
-    display: flex;
-    flex-wrap: wrap;
-  }
-
   .store-item {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .phaser-wrapper {
+    max-height: 62dvh;
   }
 }

@@ -158,23 +158,51 @@ export class CoopScene extends Phaser.Scene {
   private createTextures(): void {
     if (!this.textures.exists("playerA")) {
       const g = this.add.graphics({ x: 0, y: 0 });
+      g.fillStyle(0xf6d743, 1);
+      g.fillRoundedRect(4, 6, 42, 50, 16);
+      g.fillStyle(0x1d3557, 1);
+      g.fillRoundedRect(4, 34, 42, 22, 6);
+      g.fillStyle(0xffffff, 1);
+      g.fillRoundedRect(10, 16, 30, 12, 6);
+      g.fillStyle(0x6b705c, 1);
+      g.fillRoundedRect(10, 18, 30, 5, 2);
+      g.fillStyle(0xffffff, 1);
+      g.fillCircle(18, 22, 5);
+      g.fillCircle(32, 22, 5);
+      g.fillStyle(0x2f3e46, 1);
+      g.fillCircle(18, 22, 2);
+      g.fillCircle(32, 22, 2);
       g.fillStyle(0xff8fa3, 1);
-      g.fillRoundedRect(0, 0, 42, 54, 12);
-      g.fillStyle(0x2a0f1e, 1);
-      g.fillCircle(14, 18, 3);
-      g.fillCircle(28, 18, 3);
-      g.generateTexture("playerA", 42, 54);
+      g.fillCircle(25, 28, 2);
+      g.fillStyle(0x8d99ae, 1);
+      g.fillRoundedRect(7, 52, 14, 8, 2);
+      g.fillRoundedRect(29, 52, 14, 8, 2);
+      g.generateTexture("playerA", 50, 62);
       g.destroy();
     }
 
     if (!this.textures.exists("playerB")) {
       const g = this.add.graphics({ x: 0, y: 0 });
+      g.fillStyle(0xf6d743, 1);
+      g.fillRoundedRect(4, 6, 42, 50, 16);
+      g.fillStyle(0x457b9d, 1);
+      g.fillRoundedRect(4, 34, 42, 22, 6);
+      g.fillStyle(0xffffff, 1);
+      g.fillRoundedRect(10, 16, 30, 12, 6);
+      g.fillStyle(0x6b705c, 1);
+      g.fillRoundedRect(10, 18, 30, 5, 2);
+      g.fillStyle(0xffffff, 1);
+      g.fillCircle(18, 22, 5);
+      g.fillCircle(32, 22, 5);
+      g.fillStyle(0x2f3e46, 1);
+      g.fillCircle(18, 22, 2);
+      g.fillCircle(32, 22, 2);
       g.fillStyle(0x80d8ff, 1);
-      g.fillRoundedRect(0, 0, 42, 54, 12);
-      g.fillStyle(0x102438, 1);
-      g.fillCircle(14, 18, 3);
-      g.fillCircle(28, 18, 3);
-      g.generateTexture("playerB", 42, 54);
+      g.fillCircle(25, 28, 2);
+      g.fillStyle(0x8d99ae, 1);
+      g.fillRoundedRect(7, 52, 14, 8, 2);
+      g.fillRoundedRect(29, 52, 14, 8, 2);
+      g.generateTexture("playerB", 50, 62);
       g.destroy();
     }
 
@@ -526,14 +554,16 @@ export class CoopScene extends Phaser.Scene {
     this.chainGraphics.clear();
     const color =
       this.chainStyle === "chain-neon-link" ? 0x70e000 : this.chainStyle === "chain-heart-link" ? 0xff5d8f : 0xadb5bd;
-    this.chainGraphics.lineStyle(6, color, 0.9);
+    const dist = Math.max(1, Math.hypot(this.remotePlayer.x - this.localPlayer.x, this.remotePlayer.y - this.localPlayer.y));
+    const tension = Phaser.Math.Clamp((dist - this.chainConfig.slack) / Math.max(1, this.chainConfig.maxLength - this.chainConfig.slack), 0, 1);
+
+    this.chainGraphics.lineStyle(8, color, 0.95);
 
     const aX = this.localPlayer.x;
     const aY = this.localPlayer.y - 6;
     const bX = this.remotePlayer.x;
     const bY = this.remotePlayer.y - 6;
 
-    const dist = Math.max(1, Math.hypot(bX - aX, bY - aY));
     const segments = Math.max(8, Math.floor(dist / 18));
 
     this.chainGraphics.beginPath();
@@ -549,6 +579,15 @@ export class CoopScene extends Phaser.Scene {
       }
     }
     this.chainGraphics.strokePath();
+
+    this.chainGraphics.lineStyle(2, 0xffffff, 0.15 + tension * 0.25);
+    this.chainGraphics.beginPath();
+    this.chainGraphics.moveTo(aX, aY);
+    this.chainGraphics.lineTo(bX, bY);
+    this.chainGraphics.strokePath();
+
+    this.chainGraphics.fillStyle(0xffbe0b, 0.18 + tension * 0.55);
+    this.chainGraphics.fillCircle((aX + bX) * 0.5, (aY + bY) * 0.5, 4 + tension * 9);
 
     this.chainGraphics.fillStyle(0xced4da, 1);
     this.chainGraphics.fillCircle(aX, aY, 6);
