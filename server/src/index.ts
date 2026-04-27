@@ -5,7 +5,7 @@ import { Server } from "socket.io";
 import { LobbyStore, PlayerInput, RoomState } from "./lobby.js";
 
 const PORT = Number(process.env.PORT ?? 3001);
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN ?? "http://localhost:5173";
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN ?? "https://couple-tie.vercel.app";
 
 const app = express();
 app.use(cors({ origin: CLIENT_ORIGIN }));

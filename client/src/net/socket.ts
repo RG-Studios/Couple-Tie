@@ -44,7 +44,7 @@ export type LobbySnapshot = {
   players: NetPlayer[];
 };
 
-const serverUrl = import.meta.env.VITE_SERVER_URL ?? "http://localhost:3001";
+const serverUrl = import.meta.env.VITE_SERVER_URL ?? "https://couple-tie.onrender.com";
 
 export const socket: Socket = io(serverUrl, {
   transports: ["websocket", "polling"],
