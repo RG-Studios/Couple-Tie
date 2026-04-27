@@ -88,28 +88,38 @@ export default function GameHost({ lobby, localPlayerId, chainStyle, onCoins, on
   return (
     <div className="play-shell">
       <div className="phaser-wrapper" ref={containerRef} />
-      <div className="mobile-controls">
-        <button
-          className="control-btn"
-          onTouchStart={press({ left: true })}
-          onTouchEnd={release({ left: false })}
-          onMouseDown={press({ left: true })}
-          onMouseUp={release({ left: false })}
-        >
-          LEFT
-        </button>
-        <button
-          className="control-btn"
-          onTouchStart={press({ right: true })}
-          onTouchEnd={release({ right: false })}
-          onMouseDown={press({ right: true })}
-          onMouseUp={release({ right: false })}
-        >
-          RIGHT
-        </button>
-        <button className="control-btn jump" onTouchStart={press({ jump: true })} onMouseDown={press({ jump: true })}>
-          JUMP
-        </button>
+      <div className="mobile-controls" role="group" aria-label="Touch controls">
+        <div className="controls-jump-left">
+          <button
+            className="control-btn jump"
+            onTouchStart={press({ jump: true })}
+            onTouchEnd={release({ jump: false })}
+            onMouseDown={press({ jump: true })}
+            onMouseUp={release({ jump: false })}
+          >
+            JUMP
+          </button>
+        </div>
+        <div className="controls-move-right">
+          <button
+            className="control-btn"
+            onTouchStart={press({ left: true })}
+            onTouchEnd={release({ left: false })}
+            onMouseDown={press({ left: true })}
+            onMouseUp={release({ left: false })}
+          >
+            LEFT
+          </button>
+          <button
+            className="control-btn"
+            onTouchStart={press({ right: true })}
+            onTouchEnd={release({ right: false })}
+            onMouseDown={press({ right: true })}
+            onMouseUp={release({ right: false })}
+          >
+            RIGHT
+          </button>
+        </div>
       </div>
     </div>
   );

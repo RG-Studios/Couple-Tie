@@ -29,6 +29,11 @@ type RuntimePlatform = {
   baseY: number;
 };
 
+type RuntimeStartPad = {
+  rect: Phaser.GameObjects.Rectangle;
+  body: Phaser.Physics.Arcade.Body;
+};
+
 type ServerPlayer = {
   id: string;
   x: number;
@@ -72,6 +77,7 @@ export class CoopScene extends Phaser.Scene {
   private chainConfig: ChainConstraintConfig = { maxLength: 165, slack: 24, stiffness: 40, damping: 8 };
 
   private platforms: RuntimePlatform[] = [];
+  private startPads: RuntimeStartPad[] = [];
   private hazards: Hazard[] = [];
   private projectiles: ProjectileHazard[] = [];
   private coins!: Phaser.Physics.Arcade.Group;
@@ -97,6 +103,7 @@ export class CoopScene extends Phaser.Scene {
   private deaths = 0;
   private syncMeter = 0;
   private rescueTriggerY = 0;
+  private spawnSafeUntil = 0;
 
   private onCoins: SceneInitData["onCoins"] = () => undefined;
   private onLevelUnlocked: SceneInitData["onLevelUnlocked"] = () => undefined;
@@ -133,6 +140,7 @@ export class CoopScene extends Phaser.Scene {
     this.createTextures();
     this.addBackdrop();
     this.buildPlatforms();
+    this.buildStartPads();
     this.buildPlayers();
     this.buildHazards();
     this.buildCoins();
@@ -153,6 +161,7 @@ export class CoopScene extends Phaser.Scene {
     this.scale.on(Phaser.Scale.Events.RESIZE, this.handleResize, this);
 
     this.rescueTriggerY = this.level.height - 120;
+    this.spawnSafeUntil = this.time.now + 1800;
   }
 
   private createTextures(): void {
@@ -246,8 +255,10 @@ export class CoopScene extends Phaser.Scene {
   }
 
   private buildPlayers(): void {
-    this.localPlayer = this.physics.add.sprite(this.level.spawnA.x, this.level.spawnA.y, "playerA");
-    this.remotePlayer = this.physics.add.sprite(this.level.spawnB.x, this.level.spawnB.y, "playerB");
+    const spawnA = this.level.spawnPoints?.a ?? this.level.spawnA;
+    const spawnB = this.level.spawnPoints?.b ?? this.level.spawnB;
+    this.localPlayer = this.physics.add.sprite(spawnA.x, spawnA.y - 36, "playerA");
+    this.remotePlayer = this.physics.add.sprite(spawnB.x, spawnB.y - 36, "playerB");
 
     this.localPlayer.setCollideWorldBounds(true);
     this.localPlayer.setDragX(1200);
@@ -274,6 +285,23 @@ export class CoopScene extends Phaser.Scene {
     this.projectiles = built.projectiles;
   }
 
+  private buildStartPads(): void {
+    const spawnA = this.level.spawnPoints?.a ?? this.level.spawnA;
+    const spawnB = this.level.spawnPoints?.b ?? this.level.spawnB;
+
+    const createPad = (x: number, y: number): RuntimeStartPad => {
+      const rect = this.add.rectangle(x, y, 120, 20, 0x8ecae6, 0.9).setDepth(5);
+      this.add.rectangle(x, y - 1, 120, 4, 0xe0fbfc, 0.8).setDepth(6);
+      this.physics.add.existing(rect, false);
+      const body = rect.body as Phaser.Physics.Arcade.Body;
+      body.setAllowGravity(false);
+      body.setImmovable(true);
+      return { rect, body };
+    };
+
+    this.startPads = [createPad(spawnA.x, spawnA.y), createPad(spawnB.x, spawnB.y)];
+  }
+
   private buildCoins(): void {
     this.coins = this.physics.add.group({ allowGravity: false, immovable: true });
     this.level.coins.forEach((coinDef) => {
@@ -293,6 +321,11 @@ export class CoopScene extends Phaser.Scene {
   }
 
   private buildColliders(): void {
+    this.startPads.forEach((pad) => {
+      this.physics.add.collider(this.localPlayer, pad.rect);
+      this.physics.add.collider(this.remotePlayer, pad.rect);
+    });
+
     this.platforms.forEach((platform) => {
       this.physics.add.collider(this.localPlayer, platform.rect);
       this.physics.add.collider(this.remotePlayer, platform.rect);
@@ -306,6 +339,9 @@ export class CoopScene extends Phaser.Scene {
     });
 
     const kill = (reason: string): void => {
+      if (this.time.now < this.spawnSafeUntil) {
+        return;
+      }
       if (this.pendingFail) {
         return;
       }
@@ -347,12 +383,10 @@ export class CoopScene extends Phaser.Scene {
   }
 
   private bindInput(): void {
-    this.keyLeft = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-    this.keyRight = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    this.keyLeft = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
+    this.keyRight = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
     this.keyJump = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-    this.keyAltUp = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
-    this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
-    this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
+    this.keyAltUp = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
     this.removeMobileSub = mobileInputBridge.subscribe((state) => {
       this.mobileInput = state;
@@ -437,7 +471,7 @@ export class CoopScene extends Phaser.Scene {
       .setDepth(20);
 
     this.add
-      .text(24, 52, "Server-authoritative sync enabled.", {
+      .text(24, 52, "Move: Arrow keys. Jump: Space.", {
         fontFamily: "'Trebuchet MS', sans-serif",
         fontSize: "14px",
         color: "#ade8f4",
@@ -624,13 +658,16 @@ export class CoopScene extends Phaser.Scene {
   }
 
   private resetPositions(): void {
-    this.localPlayer.setPosition(this.level.spawnA.x, this.level.spawnA.y);
-    this.remotePlayer.setPosition(this.level.spawnB.x, this.level.spawnB.y);
+    const spawnA = this.level.spawnPoints?.a ?? this.level.spawnA;
+    const spawnB = this.level.spawnPoints?.b ?? this.level.spawnB;
+    this.localPlayer.setPosition(spawnA.x, spawnA.y - 36);
+    this.remotePlayer.setPosition(spawnB.x, spawnB.y - 36);
     this.localPlayer.setVelocity(0, 0);
     this.remotePlayer.setVelocity(0, 0);
     this.localReachedGoal = false;
     this.remoteReachedGoal = false;
     this.levelCompleted = false;
+    this.spawnSafeUntil = this.time.now + 1400;
   }
 
   private handleResize(): void {

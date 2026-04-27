@@ -23,6 +23,7 @@ html,
     radial-gradient(circle at 80% 30%, #ffd166, transparent 36%),
     linear-gradient(140deg, var(--bg-deep), var(--bg-mid));
   color: var(--ink);
+  overflow-x: hidden;
 }
 
 .app-root {
@@ -51,6 +52,36 @@ html,
   padding: 20px;
   position: relative;
   z-index: 1;
+}
+
+.playing-mode {
+  min-height: 100dvh;
+  padding: 0;
+  place-items: stretch;
+}
+
+.playing-mode .ambient-grid {
+  display: none;
+}
+
+.card-shell--playing {
+  width: 100vw;
+  height: 100dvh;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  display: grid;
+  grid-template-rows: 1fr;
+  overflow: hidden;
+}
+
+.card-shell--playing .top-row,
+.card-shell--playing .meta-row,
+.card-shell--playing .store-panel,
+.card-shell--playing .panel,
+.card-shell--playing .error-line,
+.card-shell--playing .toast {
+  display: none;
 }
 
 .top-row {
@@ -157,6 +188,7 @@ button:hover {
   display: grid;
   gap: 10px;
   width: 100%;
+  position: relative;
 }
 
 .phaser-wrapper {
@@ -168,19 +200,33 @@ button:hover {
   overflow: hidden;
   border: 3px solid #b8d0e2;
   background: #050a10;
+  touch-action: none;
 }
 
 .mobile-controls {
   display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 12px;
+  padding: 0 12px;
+  pointer-events: none;
+}
+
+.controls-jump-left,
+.controls-move-right {
+  display: flex;
   gap: 10px;
-  justify-content: center;
-  flex-wrap: wrap;
+  pointer-events: auto;
 }
 
 .control-btn {
   min-width: 98px;
   padding: 11px 14px;
   font-weight: 900;
+  opacity: 0.96;
 }
 
 .control-btn.jump {
@@ -212,6 +258,23 @@ button:hover {
   }
 
   .phaser-wrapper {
-    max-height: 62dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    border-width: 0;
+    min-height: 100dvh;
+  }
+
+  .card-shell--playing {
+    grid-template-rows: 1fr;
+  }
+
+  .card-shell--playing .top-row,
+  .card-shell--playing .meta-row {
+    display: none;
+  }
+
+  .mobile-controls {
+    bottom: 18px;
+    padding: 0 14px;
   }
 }

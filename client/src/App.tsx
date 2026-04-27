@@ -16,6 +16,13 @@ export default function App() {
   const [progress, setProgress] = useState(progressStore.get());
 
   useEffect(() => {
+    document.body.style.overflow = view === "playing" ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [view]);
+
+  useEffect(() => {
     const onConnected = (payload: { socketId: string }) => setLocalPlayerId(payload.socketId);
     const onCreated = (snapshot: LobbySnapshot) => {
       setLobby(snapshot);
@@ -117,9 +124,9 @@ export default function App() {
   };
 
   return (
-    <main className="app-root">
+    <main className={`app-root ${view === "playing" ? "playing-mode" : ""}`}>
       <section className="ambient-grid" />
-      <section className="card-shell">
+      <section className={`card-shell ${view === "playing" ? "card-shell--playing" : ""}`}>
         <header className="top-row">
           <h1>CoupleTie</h1>
           <button className="store-toggle" onClick={() => setShowStore((v) => !v)}>
