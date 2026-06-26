@@ -4,212 +4,488 @@ body,
   width: 100%;
   height: 100%;
   margin: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
+  padding: 0;
 }
 
+html,
 body {
+  overflow: hidden;
   font-family: Inter, Segoe UI, sans-serif;
-  background:
-    radial-gradient(circle at top left,#5d2cff 0%,transparent 30%),
-    radial-gradient(circle at top right,#00d4ff 0%,transparent 25%),
-    #07111f;
+  background: #050b16;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-.app-root {
-  min-height: 100dvh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
+/* =========================================================
+   GAME MENU
+========================================================= */
 
-.ambient-grid {
-  position: fixed;
-  inset: 0;
-  opacity: .12;
-  background-size: 40px 40px;
-  background-image:
-    linear-gradient(to right,#ffffff 1px,transparent 1px),
-    linear-gradient(to bottom,#ffffff 1px,transparent 1px);
-}
-
-.card-shell {
-  width: min(1200px,100%);
-  background: rgba(10,18,30,.92);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 24px;
-  padding: 28px;
-  color: white;
+.game-menu {
   position: relative;
-  z-index: 2;
-}
-
-.hero-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-}
-
-.hero-header h1 {
-  margin: 0;
-  font-size: clamp(2rem,6vw,4rem);
-}
-
-.subtitle {
-  opacity: .8;
-}
-
-.meta-row {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 16px;
-}
-
-.meta-row span {
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: rgba(255,255,255,.08);
-}
-
-.home-panel {
-  margin-top: 30px;
-  text-align: center;
-}
-
-.home-actions {
-  margin-top: 25px;
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.primary-btn,
-.secondary-btn,
-button {
-  cursor: pointer;
-  border: none;
-  border-radius: 14px;
-  padding: 14px 22px;
-  font-weight: 700;
-}
-
-.primary-btn {
-  background: #5d2cff;
-  color: white;
-}
-
-.secondary-btn {
-  background: #00b9ff;
-  color: white;
-}
-
-.join-box {
-  display: flex;
-  gap: 10px;
-}
-
-.join-box input {
-  min-width: 160px;
-  border-radius: 14px;
-  border: none;
-  padding: 14px;
-}
-
-.keyboard-tip {
-  margin-top: 16px;
-  opacity: .7;
-}
-
-.waiting-box {
-  margin-top: 20px;
-  padding: 20px;
-  border-radius: 16px;
-  background: rgba(255,255,255,.08);
-}
-
-.store-panel {
-  margin-top: 24px;
-}
-
-.store-item {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 16px;
-  margin-top: 10px;
-  border-radius: 16px;
-  background: rgba(255,255,255,.06);
-}
-
-.error-line {
-  margin-top: 15px;
-  color: #ff6b6b;
-}
-
-.toast {
-  margin-top: 15px;
-  padding: 12px;
-  border-radius: 12px;
-  background: #1f8f55;
-}
-
-.playing-mode {
-  padding: 0;
-}
-
-.card-shell--playing {
   width: 100vw;
   height: 100dvh;
-  border-radius: 0;
-  padding: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top center,
+      rgba(124, 58, 237, 0.45) 0%,
+      rgba(124, 58, 237, 0.08) 25%,
+      transparent 50%),
+    linear-gradient(
+      180deg,
+      #08111f 0%,
+      #050b16 40%,
+      #03070f 100%
+    );
+}
+
+/* =========================================================
+   PARALLAX BACKGROUND
+========================================================= */
+
+.menu-background {
+  position: absolute;
+  inset: 0;
   overflow: hidden;
 }
 
-@media (orientation: landscape) and (max-width: 1200px) {
+.menu-background::before {
+  content: "";
+  position: absolute;
+  inset: 0;
 
-  html,
-  body,
-  #root {
-    overflow: hidden;
+  background:
+    linear-gradient(
+      rgba(255,255,255,0.04) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,0.04) 1px,
+      transparent 1px
+    );
+
+  background-size: 60px 60px;
+
+  opacity: .35;
+}
+
+.menu-background::after {
+  content: "";
+
+  position: absolute;
+  left: -20%;
+  bottom: -120px;
+
+  width: 140%;
+  height: 320px;
+
+  background:
+    radial-gradient(circle at 20% 0%, #1e293b 0%, transparent 50%),
+    radial-gradient(circle at 50% 0%, #172033 0%, transparent 55%),
+    radial-gradient(circle at 80% 0%, #111827 0%, transparent 55%);
+
+  opacity: .95;
+}
+
+/* =========================================================
+   PARTICLES
+========================================================= */
+
+.floating-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.floating-particles::before,
+.floating-particles::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background-image:
+    radial-gradient(circle,#ffffff 1px,transparent 1px),
+    radial-gradient(circle,#8b5cf6 1px,transparent 1px),
+    radial-gradient(circle,#22d3ee 1px,transparent 1px);
+
+  background-size:
+    180px 180px,
+    240px 240px,
+    320px 320px;
+
+  animation: particlesFloat 18s linear infinite;
+  opacity: .55;
+}
+
+.floating-particles::after {
+  animation-duration: 28s;
+  opacity: .25;
+}
+
+@keyframes particlesFloat {
+  from {
+    transform: translateY(0);
   }
-
-  .card-shell--playing {
-    width: 100vw;
-    height: 100dvh;
+  to {
+    transform: translateY(-120px);
   }
 }
 
+/* =========================================================
+   HERO
+========================================================= */
+
+.hero-section {
+  position: relative;
+  z-index: 5;
+
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  justify-content: center;
+  align-items: center;
+
+  gap: 30px;
+
+  padding: 40px;
+}
+
+.logo-block {
+  text-align: center;
+}
+
+.logo-block h1 {
+  margin: 0;
+
+  font-size: clamp(3rem, 8vw, 7rem);
+
+  font-weight: 900;
+  letter-spacing: 8px;
+
+  color: white;
+
+  text-shadow:
+    0 0 10px rgba(124,58,237,.6),
+    0 0 30px rgba(124,58,237,.5),
+    0 0 60px rgba(124,58,237,.35);
+}
+
+.logo-block p {
+  margin-top: 12px;
+
+  color: #cbd5e1;
+
+  font-size: clamp(.9rem,2vw,1.2rem);
+}
+
+/* =========================================================
+   CHARACTERS
+========================================================= */
+
+.chain-showcase {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.player {
+  width: 110px;
+  height: 110px;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(124,58,237,.8),
+      rgba(79,70,229,.8)
+    );
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 3rem;
+
+  border: 3px solid rgba(255,255,255,.12);
+
+  box-shadow:
+    0 0 25px rgba(124,58,237,.45);
+
+  animation: idleFloat 2.5s ease-in-out infinite;
+}
+
+.player-right {
+  animation-delay: 1s;
+}
+
+@keyframes idleFloat {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* =========================================================
+   CHAIN
+========================================================= */
+
+.chain-line {
+  display: flex;
+  gap: 8px;
+}
+
+.chain-line span {
+  width: 24px;
+  height: 24px;
+
+  border: 3px solid #facc15;
+
+  border-radius: 50%;
+
+  box-shadow:
+    0 0 8px rgba(250,204,21,.8);
+
+  animation: chainSwing 1.2s infinite alternate;
+}
+
+.chain-line span:nth-child(2) {
+  animation-delay: .1s;
+}
+
+.chain-line span:nth-child(3) {
+  animation-delay: .2s;
+}
+
+.chain-line span:nth-child(4) {
+  animation-delay: .3s;
+}
+
+.chain-line span:nth-child(5) {
+  animation-delay: .4s;
+}
+
+.chain-line span:nth-child(6) {
+  animation-delay: .5s;
+}
+
+@keyframes chainSwing {
+  from {
+    transform: translateY(-3px);
+  }
+  to {
+    transform: translateY(3px);
+  }
+}
+
+/* =========================================================
+   MENU PANEL
+========================================================= */
+
+.menu-panel {
+  width: min(760px, 92vw);
+
+  padding: 30px;
+
+  border-radius: 24px;
+
+  background:
+    rgba(10,18,30,.75);
+
+  backdrop-filter: blur(18px);
+
+  border:
+    1px solid rgba(255,255,255,.08);
+
+  box-shadow:
+    0 10px 50px rgba(0,0,0,.4);
+}
+
+.game-btn {
+  border: none;
+  cursor: pointer;
+
+  font-weight: 800;
+  letter-spacing: 1px;
+
+  transition: .2s;
+}
+
+.game-btn:hover {
+  transform:
+    translateY(-2px)
+    scale(1.02);
+}
+
+.primary {
+  width: 100%;
+
+  padding: 18px;
+
+  color: white;
+
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #7c3aed,
+      #4f46e5
+    );
+}
+
+.secondary {
+  padding: 16px 24px;
+
+  border-radius: 14px;
+
+  color: white;
+
+  background:
+    linear-gradient(
+      90deg,
+      #06b6d4,
+      #0284c7
+    );
+}
+
+.join-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.join-row input {
+  flex: 1;
+
+  border: none;
+
+  padding: 16px;
+
+  border-radius: 14px;
+
+  background: rgba(255,255,255,.95);
+}
+
+/* =========================================================
+   STATS
+========================================================= */
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+
+  gap: 14px;
+
+  margin-top: 20px;
+}
+
+.stat-card {
+  padding: 18px;
+
+  text-align: center;
+
+  border-radius: 16px;
+
+  background:
+    rgba(255,255,255,.06);
+
+  color: white;
+}
+
+.stat-card span {
+  display: block;
+
+  opacity: .7;
+
+  font-size: .8rem;
+
+  margin-bottom: 8px;
+}
+
+.stat-card strong {
+  font-size: 1.2rem;
+}
+
+.error-box {
+  margin-top: 16px;
+  color: #ef4444;
+}
+
+/* =========================================================
+   GAME MODE
+========================================================= */
+
+.playing-mode {
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
 @media (max-width: 768px) {
 
-  .app-root {
+  .hero-section {
+    padding: 20px;
+  }
+
+  .chain-showcase {
+    transform: scale(.8);
+  }
+
+  .join-row {
+    flex-direction: column;
+  }
+
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
+
+  .player {
+    width: 85px;
+    height: 85px;
+    font-size: 2rem;
+  }
+}
+
+/* =========================================================
+   LANDSCAPE MOBILE
+========================================================= */
+
+@media (orientation: landscape) and (max-height: 600px) {
+
+  .hero-section {
+    gap: 18px;
     padding: 12px;
   }
 
-  .hero-header {
-    flex-direction: column;
-    text-align: center;
+  .logo-block h1 {
+    font-size: clamp(2rem,5vw,4rem);
   }
 
-  .join-box {
-    width: 100%;
-    flex-direction: column;
+  .player {
+    width: 70px;
+    height: 70px;
+    font-size: 2rem;
   }
 
-  .join-box input,
-  .join-box button {
-    width: 100%;
-  }
-
-  .store-item {
-    flex-direction: column;
+  .menu-panel {
+    width: min(900px,90vw);
+    padding: 18px;
   }
 }

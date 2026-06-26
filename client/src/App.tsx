@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import GameHost from "./game/GameHost";
 import { socket, type LobbySnapshot } from "./net/socket";
-import { progressStore, storeCatalog } from "./state/gameSession";
+import { progressStore } from "./state/gameSession";
 
 type ViewState = "home" | "lobby" | "playing";
 
@@ -11,9 +11,7 @@ export default function App() {
   const [localPlayerId, setLocalPlayerId] = useState("");
   const [lobby, setLobby] = useState<LobbySnapshot | null>(null);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState("");
-  const [showStore, setShowStore] = useState(false);
-  const [progress, setProgress] = useState(progressStore.get());
+  const [progress] = useState(progressStore.get());
 
   const createButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -22,101 +20,33 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = view === "playing" ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [view]);
-
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (view !== "home") return;
-
-      if (e.key === "Enter") {
-        if (joinId.trim()) {
-          joinLobby();
-        } else {
-          createLobby();
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [joinId, view]);
-
-  useEffect(() => {
     const onConnected = (payload: { socketId: string }) =>
       setLocalPlayerId(payload.socketId);
 
     const onCreated = (snapshot: LobbySnapshot) => {
       setLobby(snapshot);
       setView(snapshot.started ? "playing" : "lobby");
-      setError("");
     };
 
     const onUpdated = (snapshot: LobbySnapshot) => {
       setLobby(snapshot);
-
-      if (snapshot.started) {
-        setView("playing");
-      }
-    };
-
-    const onStart = (snapshot: LobbySnapshot) => {
-      setLobby(snapshot);
-      setView("playing");
-      setToast("Partner connected. Starting game.");
-    };
-
-    const onError = (payload: { message: string }) =>
-      setError(payload.message);
-
-    const onTeammateLeft = () => {
-      setToast("Partner disconnected.");
-      setLobby(null);
-      setView("home");
+      if (snapshot.started) setView("playing");
     };
 
     socket.on("connected", onConnected);
     socket.on("room_created", onCreated);
-    socket.on("room_joined", onUpdated);
     socket.on("lobby:created", onCreated);
+    socket.on("room_joined", onUpdated);
     socket.on("lobby:update", onUpdated);
-    socket.on("start_game", onStart);
-    socket.on("game:start", onStart);
-    socket.on("room_error", onError);
-    socket.on("lobby:error", onError);
-    socket.on("player_disconnected", onTeammateLeft);
-    socket.on("game:teammate-left", onTeammateLeft);
 
     return () => {
       socket.off("connected", onConnected);
       socket.off("room_created", onCreated);
-      socket.off("room_joined", onUpdated);
       socket.off("lobby:created", onCreated);
+      socket.off("room_joined", onUpdated);
       socket.off("lobby:update", onUpdated);
-      socket.off("start_game", onStart);
-      socket.off("game:start", onStart);
-      socket.off("room_error", onError);
-      socket.off("lobby:error", onError);
-      socket.off("player_disconnected", onTeammateLeft);
-      socket.off("game:teammate-left", onTeammateLeft);
     };
   }, []);
-
-  useEffect(() => {
-    if (!toast) return;
-
-    const timer = setTimeout(() => setToast(""), 2500);
-    return () => clearTimeout(timer);
-  }, [toast]);
-
-  const localCoinsInLobby = useMemo(() => {
-    if (!lobby || !localPlayerId) return 0;
-
-    return lobby.players.find((p) => p.id === localPlayerId)?.coins ?? 0;
-  }, [lobby, localPlayerId]);
 
   const createLobby = () => {
     setError("");
@@ -126,187 +56,105 @@ export default function App() {
   const joinLobby = () => {
     setError("");
     socket.emit("join_room", {
-      roomId: joinId.toUpperCase().trim(),
+      roomId: joinId.trim().toUpperCase(),
     });
   };
 
-  const buy = (itemId: string) => {
-    const result = progressStore.buy(itemId);
+  const localCoins = useMemo(() => {
+    if (!lobby || !localPlayerId) return progress.coins;
+    return progress.coins;
+  }, [lobby, localPlayerId, progress.coins]);
 
-    if (!result.ok) {
-      setToast("Not enough coins.");
-      return;
-    }
-
-    setProgress(result.data);
-  };
-
-  const equip = (itemId: string) => {
-    setProgress(progressStore.equip(itemId));
-  };
-
-  const addCoins = (amount: number) => {
-    setProgress(progressStore.addCoins(amount));
-  };
-
-  const unlockLevel = (level: number) => {
-    setProgress(progressStore.unlockLevel(level));
-  };
+  if (view === "playing" && lobby) {
+    return (
+      <GameHost
+        lobby={lobby}
+        localPlayerId={localPlayerId}
+        chainStyle="chain-heavy-steel"
+        onCoins={() => {}}
+        onLevelUnlocked={() => {}}
+        onFunnyFail={() => {}}
+        onRescue={() => {}}
+      />
+    );
+  }
 
   return (
-    <main className={`app-root ${view === "playing" ? "playing-mode" : ""}`}>
-      <div className="ambient-grid" />
+    <main className="game-menu">
+      <div className="menu-background" />
 
-      <section
-        className={`card-shell ${
-          view === "playing" ? "card-shell--playing" : ""
-        }`}
-      >
-        <header className="hero-header">
-          <div>
-            <h1>COUPLE TIE</h1>
-            <p className="subtitle">
-              Survive together. Move together. Win together.
-            </p>
+      <div className="floating-particles" />
+
+      <section className="hero-section">
+        <div className="logo-block">
+          <h1>COUPLE TIE</h1>
+          <p>
+            Two players. One chain. Zero excuses.
+          </p>
+        </div>
+
+        <div className="chain-showcase">
+          <div className="player player-left">🧑</div>
+
+          <div className="chain-line">
+            <span />
+            <span />
+            <span />
+            <span />
+            <span />
+            <span />
           </div>
 
-          {view !== "playing" && (
+          <div className="player player-right">👧</div>
+        </div>
+
+        <div className="menu-panel">
+          <button
+            ref={createButtonRef}
+            className="game-btn primary"
+            onClick={createLobby}
+          >
+            CREATE LOBBY
+          </button>
+
+          <div className="join-row">
+            <input
+              value={joinId}
+              onChange={(e) => setJoinId(e.target.value)}
+              placeholder="ENTER LOBBY CODE"
+            />
+
             <button
-              className="store-toggle"
-              onClick={() => setShowStore((v) => !v)}
+              className="game-btn secondary"
+              onClick={joinLobby}
             >
-              {showStore ? "Close Store" : "Store"}
+              JOIN
             </button>
-          )}
-        </header>
-
-        {view !== "playing" && (
-          <div className="meta-row">
-            <span>Coins: {progress.coins + localCoinsInLobby}</span>
-            <span>Level: {progress.unlockedLevel}</span>
-            <span>
-              {localPlayerId ? "Connected" : "Connecting..."}
-            </span>
           </div>
-        )}
 
-        {view === "home" && (
-          <section className="home-panel">
-            <h2>Online Cooperative Adventure</h2>
-
-            <p>
-              Create a lobby and invite your partner. Both players are linked
-              together and must solve every challenge as a team.
-            </p>
-
-            <div className="home-actions">
-              <button
-                ref={createButtonRef}
-                className="primary-btn"
-                onClick={createLobby}
-              >
-                Create Lobby
-              </button>
-
-              <div className="join-box">
-                <input
-                  value={joinId}
-                  onChange={(e) => setJoinId(e.target.value)}
-                  placeholder="Lobby ID"
-                  maxLength={6}
-                />
-
-                <button
-                  className="secondary-btn"
-                  onClick={joinLobby}
-                >
-                  Join Lobby
-                </button>
-              </div>
+          <div className="stats-row">
+            <div className="stat-card">
+              <span>COINS</span>
+              <strong>{localCoins}</strong>
             </div>
 
-            <div className="keyboard-tip">
-              Press ENTER to create/join quickly
+            <div className="stat-card">
+              <span>LEVEL</span>
+              <strong>{progress.unlockedLevel}</strong>
             </div>
-          </section>
-        )}
 
-        {view === "lobby" && lobby && (
-          <section className="home-panel">
-            <h2>Lobby {lobby.lobbyId}</h2>
-
-            <p>
-              Players Connected: {lobby.players.length}/2
-            </p>
-
-            <div className="waiting-box">
-              Waiting for your partner...
+            <div className="stat-card">
+              <span>STATUS</span>
+              <strong>
+                {localPlayerId ? "ONLINE" : "CONNECTING"}
+              </strong>
             </div>
-          </section>
-        )}
+          </div>
 
-        {view === "playing" && lobby && (
-          <GameHost
-            lobby={lobby}
-            localPlayerId={localPlayerId}
-            chainStyle={
-              (progress.equipped.chain as
-                | "chain-heavy-steel"
-                | "chain-neon-link"
-                | "chain-heart-link"
-                | null) ?? "chain-heavy-steel"
-            }
-            onCoins={addCoins}
-            onLevelUnlocked={unlockLevel}
-            onFunnyFail={(text) => setToast(text)}
-            onRescue={() => setToast("Rescue successful")}
-          />
-        )}
-
-        {showStore && (
-          <aside className="store-panel">
-            <h3>Store</h3>
-
-            {storeCatalog.map((item) => {
-              const owned =
-                progress.purchased.includes(item.id) ||
-                item.id === "chain-heavy-steel";
-
-              const equipped =
-                progress.equipped[item.type] === item.id;
-
-              return (
-                <article key={item.id} className="store-item">
-                  <div>
-                    <strong>{item.name}</strong>
-                    <p>
-                      {item.type.toUpperCase()} • {item.cost} Coins
-                    </p>
-                  </div>
-
-                  <div className="store-actions">
-                    {!owned && (
-                      <button onClick={() => buy(item.id)}>
-                        Buy
-                      </button>
-                    )}
-
-                    {owned && !equipped && (
-                      <button onClick={() => equip(item.id)}>
-                        Equip
-                      </button>
-                    )}
-
-                    {equipped && <span>Equipped</span>}
-                  </div>
-                </article>
-              );
-            })}
-          </aside>
-        )}
-
-        {error && <div className="error-line">{error}</div>}
-        {toast && <div className="toast">{toast}</div>}
+          {error && (
+            <div className="error-box">{error}</div>
+          )}
+        </div>
       </section>
     </main>
   );
